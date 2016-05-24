@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# This script checks for the existence of a Uri in the Documents db
+# If not found, it loops forever; if found, runs a separate bash script
+# that creates a pstack movie under the /tmp directory.
+
+response=404
+
+echo " "
+echo "Checking for existence of a particular Uri..."
+# Check for existence of a particular Uri and loop until found
+while [ $response = 404 ]
+do
+	response=`curl -s -o /dev/null -w "%{http_code}" \
+		--anyauth --user admin:admin -X HEAD \
+     		-H "Content-type: application/xml" \
+     		http://localhost:8000/LATEST/documents?uri=/ml_65574/segfault.xml`
+done
+
+# Create pstack movie for Support
+if [ $response != 404 ]
+then
+	echo "Seg-fault Document Found!"
+	echo "Creating support movie file..."
+	sh ./ml-support-dump.sh 120
+	echo "All done."
+fi
+exit 0
+

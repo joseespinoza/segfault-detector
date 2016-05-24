@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# This script runs grep on the 'tail -f' of the MarkLogic ErrorLog.txt
+# When it finds a Segmentation faul, it inserts a Uri into the
+# following known location db = documents uri=/ml_65574/segfault.xml
+
+echo " "
+echo "tailing the error log looking for a 'Segmentation fault' event..."
+curl --anyauth --user admin:admin -X DELETE \
+     -H "Content-type: application/xml" \
+     http://localhost:8000/LATEST/documents?uri=/ml_65574/segfault.xml
+
+# Now tail the error log looking for any 'Segmentation fault' event
+
+tail -fn0 /var/opt/MarkLogic/Logs/ErrorLog.txt | \
+while read line ; do
+        echo "$line" | grep "Segmentation fault"
+        if [ $? = 0 ]
+        then
+             echo  "Inserting signal document ... "
+             curl --anyauth --user admin:admin -X PUT -T ./segfault.xml \
+                  -H "Content-type: application/xml" \
+                  http://localhost:8000/LATEST/documents?uri=/ml_65574/segfault.xml
+             exit 0
+        fi
+done

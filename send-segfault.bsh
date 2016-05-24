@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# This script identifies the MarkLogic server process
+# And sends it a 'Segmentation Fault' kill signal.
+
+# check for superuser
+if [ $(id -u) != "0" ]; then
+    echo "You must be the superuser to run this script" >&2
+    exit 1
+fi
+
+process_id=`/bin/ps -fu "root" | grep "MarkLogic" | grep -v grep |grep -v Logs | awk '{print $2}'`
+ml_pid=`pgrep -P $process_id`
+echo "parent id = " $process_id
+echo "process id = " $ml_pid
+kill -s SIGSEGV $ml_pid
